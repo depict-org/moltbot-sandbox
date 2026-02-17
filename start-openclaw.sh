@@ -251,13 +251,12 @@ if (process.env.DISCORD_BOT_TOKEN) {
     };
 }
 
-// Slack configuration
+// Slack configuration - merge with existing R2 config to preserve DM policy etc.
 if (process.env.SLACK_BOT_TOKEN && process.env.SLACK_APP_TOKEN) {
-    config.channels.slack = {
-        botToken: process.env.SLACK_BOT_TOKEN,
-        appToken: process.env.SLACK_APP_TOKEN,
-        enabled: true,
-    };
+    config.channels.slack = config.channels.slack || {};
+    config.channels.slack.botToken = process.env.SLACK_BOT_TOKEN;
+    config.channels.slack.appToken = process.env.SLACK_APP_TOKEN;
+    config.channels.slack.enabled = true;
 }
 
 fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
