@@ -25,6 +25,9 @@ ANTHROPIC_API_KEY=sk-ant-...
 # Enable debug routes at /debug/* (optional)
 # DEBUG_ROUTES=true
 
+# Enable verbose OpenClaw gateway logs (optional, causes high memory usage)
+# OPENCLAW_VERBOSE=true
+
 # Optional - set a fixed token instead of auto-generated
 MOLTBOT_GATEWAY_TOKEN=dev-token-change-in-prod
 
