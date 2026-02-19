@@ -262,7 +262,7 @@ adminApi.post('/gateway/restart', async (c) => {
   const sandbox = c.get('sandbox');
 
   try {
-    // Find and kill the existing gateway process
+    // Find and kill the existing gateway process (sandbox-tracked)
     const existingProcess = await findExistingMoltbotProcess(sandbox);
 
     if (existingProcess) {
@@ -272,9 +272,22 @@ adminApi.post('/gateway/restart', async (c) => {
       } catch (killErr) {
         console.error('Error killing process:', killErr);
       }
-      // Wait a moment for the process to die
-      await new Promise((r) => setTimeout(r, 2000));
     }
+
+    // The sandbox kill may not reach the actual node process inside the container
+    // (e.g., when started via `exec` in a shell script). Force-kill any remaining
+    // openclaw gateway processes and clean up lock files.
+    try {
+      await sandbox.exec('pkill -9 -f "openclaw gateway" 2>/dev/null || true');
+      await sandbox.exec(
+        'rm -f /tmp/openclaw-gateway.lock /root/.openclaw/gateway.lock 2>/dev/null || true',
+      );
+    } catch (cleanupErr) {
+      console.error('Error during container cleanup:', cleanupErr);
+    }
+
+    // Wait for the process and port to fully release
+    await new Promise((r) => setTimeout(r, 2000));
 
     // Start a new gateway in the background
     const bootPromise = ensureMoltbotGateway(sandbox, c.env).catch((err) => {

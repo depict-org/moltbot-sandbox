@@ -10,8 +10,10 @@
 set -e
 
 if pgrep -f "openclaw gateway" > /dev/null 2>&1; then
-    echo "OpenClaw gateway is already running, exiting."
-    exit 0
+    echo "Existing OpenClaw gateway detected, killing before restart..."
+    pkill -9 -f "openclaw gateway" 2>/dev/null || true
+    rm -f /tmp/openclaw-gateway.lock /root/.openclaw/gateway.lock 2>/dev/null || true
+    sleep 1
 fi
 
 CONFIG_DIR="/root/.openclaw"
