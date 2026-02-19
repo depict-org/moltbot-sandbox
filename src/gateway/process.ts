@@ -85,6 +85,16 @@ export async function ensureMoltbotGateway(sandbox: Sandbox, env: MoltbotEnv): P
       } catch (killError) {
         console.log('Failed to kill process:', killError);
       }
+      // Force-kill any orphaned gateway processes and clean up lock files.
+      // The sandbox kill may not reach processes started via `exec` in a shell script.
+      try {
+        await sandbox.exec('pkill -9 -f "openclaw gateway" 2>/dev/null || true');
+        await sandbox.exec(
+          'rm -f /tmp/openclaw-gateway.lock /root/.openclaw/gateway.lock 2>/dev/null || true',
+        );
+      } catch {
+        // Best-effort cleanup
+      }
     }
   }
 
