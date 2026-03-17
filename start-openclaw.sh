@@ -9,6 +9,16 @@
 
 set -e
 
+LOCKFILE="/tmp/start-openclaw.lock"
+
+# Prevent concurrent runs — if another instance holds the lock, exit immediately.
+# The lock is released automatically when the fd is closed (process exits).
+exec 9>"$LOCKFILE"
+if ! flock -n 9; then
+    echo "Another instance of start-openclaw.sh is already running, exiting."
+    exit 0
+fi
+
 if pgrep -f "openclaw gateway" > /dev/null 2>&1; then
     echo "Existing OpenClaw gateway detected, killing before restart..."
     pkill -9 -f "openclaw gateway" 2>/dev/null || true
