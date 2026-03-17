@@ -73,38 +73,20 @@ if r2_configured; then
     setup_rclone
 
     echo "Checking R2 for existing backup..."
-    # Check if R2 has an openclaw config backup
+
+    # Phase 1: Restore ONLY the config file so the gateway can start fast.
+    # The full data restore (sessions, agents, workspace) happens in the
+    # background after the gateway is listening.
     if rclone ls "r2:${R2_BUCKET}/openclaw/openclaw.json" $RCLONE_FLAGS 2>/dev/null | grep -q openclaw.json; then
-        echo "Restoring config from R2..."
-        rclone copy "r2:${R2_BUCKET}/openclaw/" "$CONFIG_DIR/" $RCLONE_FLAGS -v 2>&1 || echo "WARNING: config restore failed with exit code $?"
-        echo "Config restored"
+        echo "Restoring config file from R2..."
+        rclone copyto "r2:${R2_BUCKET}/openclaw/openclaw.json" "$CONFIG_FILE" $RCLONE_FLAGS 2>&1 || echo "WARNING: config restore failed with exit code $?"
+        echo "Config file restored"
     elif rclone ls "r2:${R2_BUCKET}/clawdbot/clawdbot.json" $RCLONE_FLAGS 2>/dev/null | grep -q clawdbot.json; then
         echo "Restoring from legacy R2 backup..."
-        rclone copy "r2:${R2_BUCKET}/clawdbot/" "$CONFIG_DIR/" $RCLONE_FLAGS -v 2>&1 || echo "WARNING: legacy config restore failed with exit code $?"
-        if [ -f "$CONFIG_DIR/clawdbot.json" ] && [ ! -f "$CONFIG_FILE" ]; then
-            mv "$CONFIG_DIR/clawdbot.json" "$CONFIG_FILE"
-        fi
+        rclone copyto "r2:${R2_BUCKET}/clawdbot/clawdbot.json" "$CONFIG_FILE" $RCLONE_FLAGS 2>&1 || echo "WARNING: legacy config restore failed with exit code $?"
         echo "Legacy config restored and migrated"
     else
         echo "No backup found in R2, starting fresh"
-    fi
-
-    # Restore workspace
-    REMOTE_WS_COUNT=$(rclone ls "r2:${R2_BUCKET}/workspace/" $RCLONE_FLAGS 2>/dev/null | wc -l)
-    if [ "$REMOTE_WS_COUNT" -gt 0 ]; then
-        echo "Restoring workspace from R2 ($REMOTE_WS_COUNT files)..."
-        mkdir -p "$WORKSPACE_DIR"
-        rclone copy "r2:${R2_BUCKET}/workspace/" "$WORKSPACE_DIR/" $RCLONE_FLAGS -v 2>&1 || echo "WARNING: workspace restore failed with exit code $?"
-        echo "Workspace restored"
-    fi
-
-    # Restore skills
-    REMOTE_SK_COUNT=$(rclone ls "r2:${R2_BUCKET}/skills/" $RCLONE_FLAGS 2>/dev/null | wc -l)
-    if [ "$REMOTE_SK_COUNT" -gt 0 ]; then
-        echo "Restoring skills from R2 ($REMOTE_SK_COUNT files)..."
-        mkdir -p "$SKILLS_DIR"
-        rclone copy "r2:${R2_BUCKET}/skills/" "$SKILLS_DIR/" $RCLONE_FLAGS -v 2>&1 || echo "WARNING: skills restore failed with exit code $?"
-        echo "Skills restored"
     fi
 else
     echo "R2 not configured, starting fresh"
@@ -276,13 +258,34 @@ console.log('Configuration patched successfully');
 EOFPATCH
 
 # ============================================================
-# BACKGROUND SYNC LOOP
+# BACKGROUND RESTORE + SYNC LOOP
 # ============================================================
 if r2_configured; then
-    echo "Starting background R2 sync loop..."
+    echo "Starting background R2 restore + sync..."
     (
+        RESTORELOG=/tmp/r2-restore.log
         MARKER=/tmp/.last-sync-marker
         LOGFILE=/tmp/r2-sync.log
+
+        # Phase 2: Full restore of remaining data (runs while gateway is starting).
+        echo "[restore] Starting full data restore at $(date)" > "$RESTORELOG"
+        rclone copy "r2:${R2_BUCKET}/openclaw/" "$CONFIG_DIR/" \
+            $RCLONE_FLAGS --exclude='openclaw.json' 2>> "$RESTORELOG" \
+            || echo "[restore] WARNING: config dir restore failed" >> "$RESTORELOG"
+
+        mkdir -p "$WORKSPACE_DIR"
+        rclone copy "r2:${R2_BUCKET}/workspace/" "$WORKSPACE_DIR/" \
+            $RCLONE_FLAGS 2>> "$RESTORELOG" \
+            || echo "[restore] WARNING: workspace restore failed" >> "$RESTORELOG"
+
+        mkdir -p "$SKILLS_DIR"
+        rclone copy "r2:${R2_BUCKET}/skills/" "$SKILLS_DIR/" \
+            $RCLONE_FLAGS 2>> "$RESTORELOG" \
+            || echo "[restore] WARNING: skills restore failed" >> "$RESTORELOG"
+
+        echo "[restore] Full data restore complete at $(date)" >> "$RESTORELOG"
+
+        # Now run the periodic sync loop
         touch "$MARKER"
 
         while true; do
@@ -317,7 +320,7 @@ if r2_configured; then
             fi
         done
     ) &
-    echo "Background sync loop started (PID: $!)"
+    echo "Background restore + sync started (PID: $!)"
 fi
 
 # ============================================================
