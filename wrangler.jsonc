@@ -45,7 +45,7 @@
       "authorized_keys": [
         {
           "name": "daniel-mbp",
-          "public_key": "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBN8OAtcAPwfc/8K1dhm1ua2mKKqfTfgVotAUZA16xDkofv9601k9dhLUIhm0+VxRrI9mN+ObfMEx/ny0OX25nzk= cloudflare-container-ssh@secretive.Daniel's-MacBook-Pro-(4).local",
+          "public_key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEUIVKFI6mDYQ+ShcCPOHW39NAlvxCyESsC+br8XMauK daniel@Daniels-MacBook-Pro.local",
         },
       ],
     },
