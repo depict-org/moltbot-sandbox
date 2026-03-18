@@ -19,9 +19,16 @@ RUN ARCH="$(dpkg --print-architecture)" \
 
 # Install OpenClaw (formerly clawdbot/moltbot)
 # Pin to specific version for reproducible builds
-RUN npm install -g --loglevel verbose openclaw@2026.3.13 \
-    && openclaw --version \
-    || (echo "=== NPM DEBUG LOG ===" && cat /root/.npm/_logs/*-debug-*.log && exit 1)
+RUN echo "=== CWD ===" && pwd && ls -la \
+    && echo "=== NPMRC FILES ===" \
+    && cat /root/.npmrc 2>/dev/null || true \
+    && cat /usr/local/etc/npmrc 2>/dev/null || true \
+    && cat /usr/local/lib/node_modules/npm/npmrc 2>/dev/null || true \
+    && echo "=== NPM CONFIG ===" && npm config list \
+    && echo "=== INSTALLING ===" \
+    && cd /tmp \
+    && npm install -g --loglevel silly openclaw@2026.3.13 \
+    && openclaw --version
 
 # Create OpenClaw directories
 # Legacy .clawdbot paths are kept for R2 backup migration
