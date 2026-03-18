@@ -3,7 +3,7 @@ FROM docker.io/cloudflare/sandbox:0.7.0
 # Install Node.js 22 (required by OpenClaw) and rclone (for R2 persistence)
 # The base image has Node 20, we need to replace it with Node 22
 # Using direct binary download for reliability
-ENV NODE_VERSION=22.22.1
+ENV NODE_VERSION=22.16.0
 RUN ARCH="$(dpkg --print-architecture)" \
     && case "${ARCH}" in \
          amd64) NODE_ARCH="x64" ;; \
@@ -11,6 +11,7 @@ RUN ARCH="$(dpkg --print-architecture)" \
          *) echo "Unsupported architecture: ${ARCH}" >&2; exit 1 ;; \
        esac \
     && apt-get update && apt-get install -y xz-utils ca-certificates rclone \
+    && rm -rf /usr/local/lib/node_modules /usr/local/bin/node /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
     && curl -fsSLk https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz -o /tmp/node.tar.xz \
     && tar -xJf /tmp/node.tar.xz -C /usr/local --strip-components=1 \
     && rm /tmp/node.tar.xz \
@@ -19,15 +20,7 @@ RUN ARCH="$(dpkg --print-architecture)" \
 
 # Install OpenClaw (formerly clawdbot/moltbot)
 # Pin to specific version for reproducible builds
-RUN echo "=== CWD ===" && pwd && ls -la \
-    && echo "=== NPMRC FILES ===" \
-    && cat /root/.npmrc 2>/dev/null || true \
-    && cat /usr/local/etc/npmrc 2>/dev/null || true \
-    && cat /usr/local/lib/node_modules/npm/npmrc 2>/dev/null || true \
-    && echo "=== NPM CONFIG ===" && npm config list \
-    && echo "=== INSTALLING ===" \
-    && cd /tmp \
-    && npm install -g --loglevel silly openclaw@2026.3.13 \
+RUN npm install -g openclaw@2026.3.13 \
     && openclaw --version
 
 # Create OpenClaw directories
