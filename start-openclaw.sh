@@ -163,6 +163,17 @@ if (process.env.OPENCLAW_DEV_MODE === 'true') {
     config.gateway.controlUi.allowInsecureAuth = true;
 }
 
+// Since v2026.2.26, the gateway enforces allowedOrigins for WebSocket connections.
+// The worker proxies requests from the public URL, so we must whitelist that origin.
+if (process.env.WORKER_URL) {
+    config.gateway.controlUi = config.gateway.controlUi || {};
+    const origins = config.gateway.controlUi.allowedOrigins || [];
+    if (!origins.includes(process.env.WORKER_URL)) {
+        origins.push(process.env.WORKER_URL);
+    }
+    config.gateway.controlUi.allowedOrigins = origins;
+}
+
 // Legacy AI Gateway base URL override:
 // ANTHROPIC_BASE_URL is picked up natively by the Anthropic SDK,
 // so we don't need to patch the provider config. Writing a provider
