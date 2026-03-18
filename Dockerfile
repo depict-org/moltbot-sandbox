@@ -3,7 +3,7 @@ FROM docker.io/cloudflare/sandbox:0.7.0
 # Install Node.js 22 (required by OpenClaw) and rclone (for R2 persistence)
 # The base image has Node 20, we need to replace it with Node 22
 # Using direct binary download for reliability
-ENV NODE_VERSION=24.14.0
+ENV NODE_VERSION=22.22.1
 RUN ARCH="$(dpkg --print-architecture)" \
     && case "${ARCH}" in \
          amd64) NODE_ARCH="x64" ;; \
@@ -19,7 +19,7 @@ RUN ARCH="$(dpkg --print-architecture)" \
 
 # Install OpenClaw (formerly clawdbot/moltbot)
 # Pin to specific version for reproducible builds
-RUN npm install -g openclaw@2026.3.13 \
+RUN npm install -g --loglevel verbose openclaw@2026.3.13 \
     && openclaw --version
 
 # Create OpenClaw directories
