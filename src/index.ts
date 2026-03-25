@@ -446,4 +446,38 @@ app.all('*', async (c) => {
 
 export default {
   fetch: app.fetch,
+
+  /**
+   * Scheduled handler to keep the container warm.
+   * Runs every 5 minutes via cron trigger to prevent cold starts.
+   */
+  async scheduled(
+    _event: ScheduledEvent,
+    env: MoltbotEnv,
+    ctx: ExecutionContext,
+  ): Promise<void> {
+    console.log('[CRON] Keep-alive ping started');
+
+    try {
+      const options = buildSandboxOptions(env);
+      const sandbox = getSandbox(env.Sandbox, 'moltbot', options);
+
+      // Check if container exists and is running
+      const existingProcess = await findExistingMoltbotProcess(sandbox);
+
+      if (existingProcess && existingProcess.status === 'running') {
+        console.log('[CRON] Container already running, ping successful');
+      } else {
+        console.log('[CRON] Container not running, starting gateway...');
+        // Start the gateway to warm up the container
+        ctx.waitUntil(
+          ensureMoltbotGateway(sandbox, env)
+            .then(() => console.log('[CRON] Gateway started successfully'))
+            .catch((err: Error) => console.error('[CRON] Gateway start failed:', err.message)),
+        );
+      }
+    } catch (error) {
+      console.error('[CRON] Keep-alive ping failed:', error);
+    }
+  },
 };

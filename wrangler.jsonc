@@ -7,6 +7,10 @@
   "observability": {
     "enabled": true,
   },
+  // Cron trigger to keep the container warm (prevents cold starts)
+  "triggers": {
+    "crons": ["*/5 * * * *"],
+  },
   // Static assets for admin UI (built by vite)
   "assets": {
     "directory": "./dist/client",
