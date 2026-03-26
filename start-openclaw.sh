@@ -9,6 +9,21 @@
 
 set -e
 
+# ============================================================
+# INSTALL ANKRA CLI (non-blocking)
+# ============================================================
+install_ankra() {
+    echo "Installing Ankra CLI..."
+    if bash <(curl -sL https://github.com/ankraio/ankra-cli/releases/latest/download/install.sh) 2>&1; then
+        echo "Ankra CLI installed successfully: $(ankra --version 2>/dev/null || echo 'unknown version')"
+    else
+        echo "WARNING: Ankra CLI installation failed (non-fatal, continuing startup)"
+    fi
+}
+
+# Install ankra in background to avoid blocking gateway startup
+install_ankra &
+
 LOCKFILE="/tmp/start-openclaw.lock"
 
 # Prevent concurrent runs — if another instance holds the lock, exit immediately.
