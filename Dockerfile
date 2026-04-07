@@ -20,7 +20,7 @@ RUN ARCH="$(dpkg --print-architecture)" \
 
 # Install OpenClaw (formerly clawdbot/moltbot)
 # Pin to specific version for reproducible builds
-RUN npm install -g openclaw@2026.3.13 \
+RUN npm install -g openclaw@2026.4.5 \
     && openclaw --version
 
 # Create OpenClaw directories
@@ -30,7 +30,7 @@ RUN mkdir -p /root/.openclaw \
     && mkdir -p /root/clawd/skills
 
 # Copy startup script
-# Build cache bust: 2026-04-07-v35-redeploy
+# Build cache bust: 2026-04-07-v36-openclaw-2026.4.5
 COPY start-openclaw.sh /usr/local/bin/start-openclaw.sh
 RUN chmod +x /usr/local/bin/start-openclaw.sh
 
