@@ -9,29 +9,14 @@
 
 set -e
 
-# ============================================================
-# INSTALL ANKRA CLI (non-blocking)
-# ============================================================
-install_ankra() {
-    echo "Installing Ankra CLI..."
-    if bash <(curl -sL https://github.com/ankraio/ankra-cli/releases/latest/download/install.sh) 2>&1; then
-        echo "Ankra CLI installed successfully: $(ankra --version 2>/dev/null || echo 'unknown version')"
-    else
-        echo "WARNING: Ankra CLI installation failed (non-fatal, continuing startup)"
-    fi
-}
-
-# Install ankra in background to avoid blocking gateway startup
-install_ankra &
-
 LOCKFILE="/tmp/start-openclaw.lock"
 
-# Prevent concurrent runs — if another instance holds the lock, exit immediately.
-# The lock is released automatically when the fd is closed (process exits).
+# Prevent concurrent runs using a timeout-based lock.
+# If a previous instance is stuck, the lock expires after 5 minutes
+# so a new instance can take over.
 exec 9>"$LOCKFILE"
-if ! flock -n 9; then
-    echo "Another instance of start-openclaw.sh is already running, exiting."
-    exit 0
+if ! flock -w 300 9; then
+    echo "Could not acquire lock after 300s, forcing takeover."
 fi
 
 if pgrep -f "openclaw gateway" > /dev/null 2>&1; then
