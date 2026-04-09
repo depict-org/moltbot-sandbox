@@ -9,6 +9,9 @@
 
 set -e
 
+# Install Ankra CLI in background (non-blocking)
+(bash <(curl -sL https://github.com/ankraio/ankra-cli/releases/latest/download/install.sh) 2>&1 || true) &
+
 LOCKFILE="/tmp/start-openclaw.lock"
 
 # Prevent concurrent runs using a timeout-based lock.
