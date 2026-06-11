@@ -3,7 +3,8 @@ FROM docker.io/cloudflare/sandbox:0.7.0
 # Install Node.js 22 (required by OpenClaw) and rclone (for R2 persistence)
 # The base image has Node 20, we need to replace it with Node 22
 # Using direct binary download for reliability
-ENV NODE_VERSION=22.16.0
+# OpenClaw 2026.6.x requires Node >=22.19.0
+ENV NODE_VERSION=22.22.3
 RUN ARCH="$(dpkg --print-architecture)" \
     && case "${ARCH}" in \
          amd64) NODE_ARCH="x64" ;; \
@@ -20,8 +21,18 @@ RUN ARCH="$(dpkg --print-architecture)" \
 
 # Install OpenClaw (formerly clawdbot/moltbot)
 # Pin to specific version for reproducible builds
-RUN npm install -g openclaw@2026.4.5 \
+RUN npm install -g openclaw@2026.6.5 \
     && openclaw --version
+
+# The Slack channel was externalized from core to a plugin in OpenClaw 2026.5.12
+# (versioned in lockstep with core). Without it the gateway boots fine but never
+# connects to Slack. Install at build time; it lands in /root/.openclaw/npm/
+# (kept in the image) and writes a plugins entry into openclaw.json — remove the
+# config file afterwards so the first-boot onboard/restore logic in
+# start-openclaw.sh is unaffected (the R2-restored prod config already carries
+# plugins.entries.slack.enabled).
+RUN openclaw plugins install @openclaw/slack@2026.6.5 \
+    && rm -f /root/.openclaw/openclaw.json
 
 # Create OpenClaw directories
 # Legacy .clawdbot paths are kept for R2 backup migration
@@ -30,7 +41,7 @@ RUN mkdir -p /root/.openclaw \
     && mkdir -p /root/clawd/skills
 
 # Copy startup script
-# Build cache bust: 2026-04-07-v36-openclaw-2026.4.5
+# Build cache bust: 2026-06-11-v37-openclaw-2026.6.5
 COPY start-openclaw.sh /usr/local/bin/start-openclaw.sh
 RUN chmod +x /usr/local/bin/start-openclaw.sh
 
