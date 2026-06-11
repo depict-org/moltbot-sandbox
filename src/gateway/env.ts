@@ -51,6 +51,11 @@ export function buildEnvVars(env: MoltbotEnv): Record<string, string> {
   if (env.CDP_SECRET) envVars.CDP_SECRET = env.CDP_SECRET;
   if (env.WORKER_URL) envVars.WORKER_URL = env.WORKER_URL;
 
+  // Read-only OpenSearch logs access (logs.depict.ai), used by the depict-logs skill
+  if (env.OPENSEARCH_LOGS_URL) envVars.OPENSEARCH_LOGS_URL = env.OPENSEARCH_LOGS_URL;
+  if (env.OPENSEARCH_LOGS_USERNAME) envVars.OPENSEARCH_LOGS_USERNAME = env.OPENSEARCH_LOGS_USERNAME;
+  if (env.OPENSEARCH_LOGS_PASSWORD) envVars.OPENSEARCH_LOGS_PASSWORD = env.OPENSEARCH_LOGS_PASSWORD;
+
   // R2 persistence credentials (used by rclone in start-openclaw.sh)
   if (env.R2_ACCESS_KEY_ID) envVars.R2_ACCESS_KEY_ID = env.R2_ACCESS_KEY_ID;
   if (env.R2_SECRET_ACCESS_KEY) envVars.R2_SECRET_ACCESS_KEY = env.R2_SECRET_ACCESS_KEY;

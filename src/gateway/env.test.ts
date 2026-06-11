@@ -144,6 +144,18 @@ describe('buildEnvVars', () => {
     expect(result.CF_ACCOUNT_ID).toBe('acct-123');
   });
 
+  it('passes OpenSearch logs credentials to container', () => {
+    const env = createMockEnv({
+      OPENSEARCH_LOGS_URL: 'https://log-ingestion.example.com:9200',
+      OPENSEARCH_LOGS_USERNAME: 'reader',
+      OPENSEARCH_LOGS_PASSWORD: 'secret',
+    });
+    const result = buildEnvVars(env);
+    expect(result.OPENSEARCH_LOGS_URL).toBe('https://log-ingestion.example.com:9200');
+    expect(result.OPENSEARCH_LOGS_USERNAME).toBe('reader');
+    expect(result.OPENSEARCH_LOGS_PASSWORD).toBe('secret');
+  });
+
   it('combines all env vars correctly', () => {
     const env = createMockEnv({
       ANTHROPIC_API_KEY: 'sk-key',
