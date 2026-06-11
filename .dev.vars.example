@@ -43,3 +43,8 @@ MOLTBOT_GATEWAY_TOKEN=dev-token-change-in-prod
 # CDP (Chrome DevTools Protocol) configuration for browser automation
 # CDP_SECRET=shared-secret-for-cdp-auth
 # WORKER_URL=https://your-worker.example.com
+
+# Read-only OpenSearch logs access for the agent (depict-logs skill)
+# OPENSEARCH_LOGS_URL=https://log-ingestion.depict.ai:9200
+# OPENSEARCH_LOGS_USERNAME=clanker
+# OPENSEARCH_LOGS_PASSWORD=...

@@ -438,6 +438,9 @@ The previous `AI_GATEWAY_API_KEY` + `AI_GATEWAY_BASE_URL` approach is still supp
 | `SLACK_APP_TOKEN` | No | Slack app token |
 | `CDP_SECRET` | No | Shared secret for CDP endpoint authentication (see [Browser Automation](#optional-browser-automation-cdp)) |
 | `WORKER_URL` | No | Public URL of the worker (required for CDP) |
+| `OPENSEARCH_LOGS_URL` | No | OpenSearch endpoint for the depict-logs skill (e.g. `https://log-ingestion.depict.ai:9200`) |
+| `OPENSEARCH_LOGS_USERNAME` | No | Read-only OpenSearch user for the depict-logs skill |
+| `OPENSEARCH_LOGS_PASSWORD` | No | Password for `OPENSEARCH_LOGS_USERNAME` |
 
 ## Security Considerations
 
