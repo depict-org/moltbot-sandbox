@@ -460,7 +460,7 @@ OpenClaw in Cloudflare Sandbox uses multiple authentication layers:
 
 **Gateway fails to start:** Check `npx wrangler secret list` and `npx wrangler tail`
 
-**Config changes not working:** Edit the `# Build cache bust:` comment in `Dockerfile` and redeploy
+**Config changes not working:** Bump the `ENV CACHE_BUST=` value in `Dockerfile` and redeploy. (A bare comment is not enough — comments don't change the image digest, so no container rollout happens.)
 
 **Slow first request:** Cold starts take 1-2 minutes. Subsequent requests are faster.
 

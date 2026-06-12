@@ -41,7 +41,11 @@ RUN mkdir -p /root/.openclaw \
     && mkdir -p /root/clawd/skills
 
 # Copy startup script
-# Build cache bust: 2026-06-12-v38-skills-in-workspace
+# Bump CACHE_BUST to force a new image digest (and thus a container rollout)
+# even when no file content changed. A bare comment is NOT enough: comments
+# don't change layer hashes, so wrangler ends up pushing an identical digest
+# and the running instance is never replaced.
+ENV CACHE_BUST=2026-06-12-v39-cdp-browser-rendering
 COPY start-openclaw.sh /usr/local/bin/start-openclaw.sh
 RUN chmod +x /usr/local/bin/start-openclaw.sh
 
