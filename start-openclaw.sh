@@ -32,7 +32,9 @@ fi
 CONFIG_DIR="/root/.openclaw"
 CONFIG_FILE="$CONFIG_DIR/openclaw.json"
 WORKSPACE_DIR="/root/clawd"
-SKILLS_DIR="/root/clawd/skills"
+# NB: skills live in $CONFIG_DIR/workspace/skills (the configured agent
+# workspace), so the config-dir restore/sync below covers them. The legacy
+# /root/clawd dir is kept only for old R2 workspace/ backups.
 RCLONE_CONF="/root/.config/rclone/rclone.conf"
 LAST_SYNC_FILE="/tmp/.last-sync"
 
@@ -292,11 +294,6 @@ if r2_configured; then
             $RCLONE_FLAGS 2>> "$RESTORELOG" \
             || echo "[restore] WARNING: workspace restore failed" >> "$RESTORELOG"
 
-        mkdir -p "$SKILLS_DIR"
-        rclone copy "r2:${R2_BUCKET}/skills/" "$SKILLS_DIR/" \
-            $RCLONE_FLAGS 2>> "$RESTORELOG" \
-            || echo "[restore] WARNING: skills restore failed" >> "$RESTORELOG"
-
         echo "[restore] Full data restore complete at $(date)" >> "$RESTORELOG"
 
         # Now run the periodic sync loop
@@ -323,10 +320,6 @@ if r2_configured; then
                 if [ -d "$WORKSPACE_DIR" ]; then
                     rclone sync "$WORKSPACE_DIR/" "r2:${R2_BUCKET}/workspace/" \
                         $RCLONE_FLAGS --exclude='skills/**' --exclude='.git/**' --exclude='node_modules/**' 2>> "$LOGFILE"
-                fi
-                if [ -d "$SKILLS_DIR" ]; then
-                    rclone sync "$SKILLS_DIR/" "r2:${R2_BUCKET}/skills/" \
-                        $RCLONE_FLAGS 2>> "$LOGFILE"
                 fi
                 date -Iseconds > "$LAST_SYNC_FILE"
                 touch "$MARKER"
