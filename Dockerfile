@@ -41,12 +41,18 @@ RUN mkdir -p /root/.openclaw \
     && mkdir -p /root/clawd/skills
 
 # Copy startup script
-# Build cache bust: 2026-06-11-v37-openclaw-2026.6.5
+# Build cache bust: 2026-06-12-v38-skills-in-workspace
 COPY start-openclaw.sh /usr/local/bin/start-openclaw.sh
 RUN chmod +x /usr/local/bin/start-openclaw.sh
 
-# Copy custom skills
-COPY skills/ /root/clawd/skills/
+# Copy custom skills into the agent workspace skills dir. OpenClaw discovers
+# skills by scanning <agents.defaults.workspace>/skills, and this deployment's
+# R2-persisted config sets workspace = /root/.openclaw/workspace — NOT the
+# /root/clawd default this repo originally assumed (skills copied there were
+# never discovered). The R2 restore of the openclaw/ prefix covers this path
+# and overwrites matching files, so keep r2:moltbot-data/openclaw/workspace/skills/
+# in sync when changing skills here.
+COPY skills/ /root/.openclaw/workspace/skills/
 
 # Set working directory
 WORKDIR /root/clawd
